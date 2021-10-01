@@ -1,6 +1,5 @@
 from functools import cmp_to_key
 
-
 mid = (0, 0)
 
 
@@ -93,9 +92,6 @@ def convexHullBase1(points):
 
 def Left_index(points):
      
-    '''
-    Finding the left most point
-    '''
     minn = 0
     for i in range(1,len(points)):
         if points[i][0] < points[minn][0]:
@@ -194,8 +190,7 @@ def convexHullMerge(PointListA, PointListB):
 
     mergeList = []
     mergeList.append(PointListA[upperA])
-    # print("upperA:", PointListA[upperA])
-    # print("lowerA:", PointListB[lowerB])
+
     while upperA != lowerA:
         upperA = (upperA+1)%len(PointListA)
         mergeList.append(PointListA[upperA])
@@ -210,8 +205,6 @@ def convexHullMerge(PointListA, PointListB):
 
 def convexHull(pointList):
     if len(pointList) <= 5:
-        print("Huby:", convexHullBase(pointList))
-        print("Luis:", convexHullBase1(pointList))
         return convexHullBase(pointList)
     
     left = pointList[0:len(pointList)//2]
@@ -222,3 +215,4 @@ def convexHull(pointList):
 
 
     return convexHullMerge(leftHull, rightHull)
+
