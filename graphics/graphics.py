@@ -24,7 +24,7 @@ def transformList(list):
 
 def drawPoints(pointList):
     for point in pointList:
-        pygame.draw.circle(screen, (100, 100, 100), transform(point), 2, 1)
+        pygame.draw.circle(screen, (100, 100, 100), transform(point), 5, 5)
 
 def convexHullIterative(pointList):
     
@@ -97,6 +97,50 @@ def convexHullIterative(pointList):
     for polygon in stack:
         pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),1)
 
+
+def convexHullNaive(pointList):
+    if len(pointList) < 3:
+        return pointList
+ 
+    l = Left_index(pointList)
+    
+    hull = []
+     
+    p = l
+    q = 0
+    while(True):
+         
+        hull.append(pointList[p])
+        drawPoints(pointList)
+        for point in hull:
+            pygame.draw.circle(screen, (220, 0, 0), transform(point), 4, 4)
+
+        q = (p + 1) % len(pointList)
+        if len(hull) > 1:
+            pygame.draw.lines(screen, (220,0,0), False, transformList(hull),2)
+        for i in range(len(pointList)):
+            if len(hull) > 1:
+                pygame.draw.lines(screen, (220,0,0), False, transformList(hull),2)
+            if(clockwise(pointList[p],pointList[q], pointList[i]) == 1):
+                q = i
+            pygame.draw.line(screen, (220, 0, 0), transform(pointList[p]), transform(pointList[i]), 3)
+            pygame.draw.line(screen, (0, 220, 0), transform(pointList[p]), transform(pointList[q]), 3)
+            pygame.display.flip()
+            screen.fill(white)
+            drawPoints(pointList)
+            for point in hull:
+                pygame.draw.circle(screen, (220, 0, 0), transform(point), 4, 4)
+            pygame.time.delay(int(delay/10))
+        p = q
+
+        if(p == l):
+            break
+
+        pygame.display.flip()
+        
+    
+    return hull
+
 def runIterative(points):
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
@@ -130,3 +174,20 @@ def runRecursive(points):
         # pygame.draw.lines(screen, (0,255,0), True, transformList(pointsLender),5)
 
         pygame.display.flip()
+
+def runNaive(points):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT: sys.exit()
+    
+    screen.fill(white)
+
+    result = convexHullNaive(points)
+
+    screen.fill(white)
+    drawPoints(points)
+    pygame.draw.lines(screen, (0,220,0), True, transformList(result),2)
+    pygame.display.flip()
+
+
+    while 1:
+        pygame.time.delay(delay)

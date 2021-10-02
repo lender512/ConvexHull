@@ -14,12 +14,9 @@ def init():
     testPoints = list(set(points))
     testPoints.sort(key=lambda x: x[0])
 
-    runIterative(testPoints)
-    #runRecursive(testPoints)
-
-
-
-
+    # runIterative(testPoints)
+    runNaive(testPoints)
+    # runRecursive(testPoints)
         
 
 if __name__ == '__main__':
