@@ -6,12 +6,66 @@ from graphics.imageRecognition import *
 pygame.init()
 resize = 5
 
-delay = 100
+delay = 1000
 
 size = width, height = int(360*resize), int(180*resize)
 white = 255, 255, 255
 
 screen = pygame.display.set_mode(size)
+
+def normalizePoints(points):
+    points.sort(key=lambda x: (x[1], x[0]))
+    print(points)
+    currentY = 0
+    first = False
+    ranges = []
+    counter = 0
+    for i in range(len(points)):
+        if points[i][1] != currentY:
+            if counter >= 2:
+                ranges.append(points[i-1])
+            counter = 0
+            first = False
+        if not first:
+            ranges.append(points[i])
+            currentY = points[i][1]
+            currentYIndex = i
+            first = True
+        counter += 1
+
+    ranges.append(points[currentYIndex+counter-1])
+
+
+    points = ranges
+    print(points)
+    points.sort(key=lambda x: (x[0], x[1]))
+
+
+    currentX = 0
+    first = False
+    ranges = []
+    counter = 0
+    for i in range(len(points)):
+        if points[i][0] != currentX:
+            if counter >= 2:
+                ranges.append(points[i-1])
+            counter = 0
+            first = False
+        if not first:
+            ranges.append(points[i])
+            currentX = points[i][0]
+            currentXIndex = i
+            first = True
+        counter += 1
+
+    ranges.append(points[currentXIndex+counter-1])
+
+    points = ranges
+    print(points)
+    points = list(set(points))
+    points.sort(key=lambda x: x[0])
+
+    return points
 
 
 
@@ -29,7 +83,7 @@ def drawPoints(pointList):
     for point in pointList:
         pygame.draw.circle(screen, (100, 100, 100), transform(point), 2,2)
 
-def convexHullIterative(pointList):
+def convexHullIterative(pointList, delay):
     
     drawPoints(pointList)
 
@@ -86,22 +140,23 @@ def convexHullIterative(pointList):
                 pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),1)
 
         pygame.display.flip()
-        pygame.time.delay(delay)
         screen.fill(white)
+        pygame.time.delay(delay)
         drawPoints(pointList)
 
     
     drawPoints(pointList)
     
+    if len(nStack) == 1:
+        pygame.draw.lines(screen, (10,10,10), True, transformList(nStack.pop()),1)
 
-    for polygon in nStack:
-        pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),1)
+    else:
+        pygame.draw.lines(screen, (10,10,10), True, transformList(stack.pop()),1)
 
-    for polygon in stack:
-        pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),1)
+    
 
 
-def convexHullNaive(pointList):
+def convexHullNaive(pointList, delay):
     if len(pointList) < 3:
         return pointList
  
@@ -133,7 +188,7 @@ def convexHullNaive(pointList):
             drawPoints(pointList)
             for point in hull:
                 pygame.draw.circle(screen, (220, 0, 0), transform(point), 4, 4)
-            pygame.time.delay(int(delay/10))
+            pygame.time.delay(int(delay))
         p = q
 
         if(p == l):
@@ -144,14 +199,16 @@ def convexHullNaive(pointList):
     
     return hull
 
-def runIterative(points):
+def runIterative(points, delay):
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
     
     screen.fill(white)
 
-    result = convexHullIterative(points)
+    convexHullIterative(points, delay)
 
+
+    pygame.display.flip()
     while 1:
         pygame.time.delay(delay)
 
@@ -173,18 +230,16 @@ def runRecursive(points):
 
 
         pygame.draw.lines(screen, (10,10,10), True, transformList(result),5)
-        # pygame.draw.lines(screen, (0,0,255), True, transformList(pointsHuby),5)
-        # pygame.draw.lines(screen, (0,255,0), True, transformList(pointsLender),5)
 
         pygame.display.flip()
 
-def runNaive(points):
+def runNaive(points, delay):
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
     
     screen.fill(white)
 
-    result = convexHullNaive(points)
+    result = convexHullNaive(points, delay)
 
     screen.fill(white)
     drawPoints(points)
@@ -197,6 +252,7 @@ def transformImage(points):
         invertedList.append((point[1], point[0])) 
     return invertedList
 
+
 def runImage():
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
@@ -208,44 +264,7 @@ def runImage():
 
     points = list(set(points))
 
-    points.sort(key=lambda x: x[1])
-    
-    currentY = 0
-    first = False
-    ranges = []
-    for i in range(len(points)):
-        if not first:
-            ranges.append(points[i])
-            currentY = points[i][1]
-            first = True
-        lastPoint = i
-        if points[i][1] != currentY:
-            ranges.append(points[i-1])
-            first = False
-
-    points = ranges
-
-    points.sort(key=lambda x: x[0])
-
-
-    currentX = 0
-    first = False
-    ranges = []
-    for i in range(len(points)):
-        if not first:
-            ranges.append(points[i])
-            currentX = points[i][0]
-            first = True
-        lastPoint = i
-        if points[i][0] != currentX:
-            ranges.append(points[i-1])
-            first = False
-
-    points = ranges
-
-
-    points = list(set(points))
-    points.sort(key=lambda x: x[0])
+    points = normalizePoints(points)
 
     print(points)
     result = transformImage(convexHull(points))
@@ -254,10 +273,54 @@ def runImage():
     screen.fill(white)
     pygame.draw.lines(screen, (220, 0, 0), True, transformImage(points), 1)
 
-    screen.blit(pygame.image.load("test.jpg"), [0, 0])
+    path = os.getcwd() + '/graphics/test.jpg'
+    screen.blit(pygame.image.load(path), [0, 0])
     pygame.draw.lines(screen, (0,0,0), True, result,5)
     pygame.display.flip()
 
 
     while 1:
         pygame.time.delay(delay)
+
+def runInteractive():
+    points = []
+
+    while 1:
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+
+            # handle MOUSEBUTTONUP
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                
+                points.append(pos)
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_n:
+                    nPoints = []
+                    for point in points:
+                        nPoints.append((point[0]-width//2, -(point[1]-height//2)))
+                    runNaive(nPoints, 100)
+                if event.key == pygame.K_i:
+                    nPoints = []
+                    for point in points:
+                        nPoints.append((point[0]-width//2, -(point[1]-height//2)))
+                    nPoints.sort(key=lambda x: x[0])
+                    runIterative(nPoints, 1000)
+                if event.key == pygame.K_r:
+                    nPoints = []
+                    for point in points:
+                        nPoints.append((point[0]-width//2, -(point[1]-height//2)))
+                    nPoints.sort(key=lambda x: x[0])
+                    runRecursive(nPoints)
+
+        screen.fill(white)
+
+        for point in points:
+            pygame.draw.circle(screen, (200, 0, 0), point, 4, 4)
+
+        pygame.display.flip()
+
+
+    return "uwu"

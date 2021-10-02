@@ -1,10 +1,11 @@
 
-import numpy, cv2
+import numpy, cv2, os
 
 def edgeDetection():
 
     # Read the original image
-    img = cv2.imread('test.jpg') 
+    path = os.getcwd() + '/graphics/test.jpg'
+    img = cv2.imread(path) 
     # Display original image
     # cv2.imshow('Original', img)
     # cv2.waitKey(0)

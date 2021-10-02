@@ -33,62 +33,6 @@ def compare(pointA, pointB):
         return (one < two)
     return ((p[1]*q[0] < q[1]*p[0]))
 
-def bubbleSort(arr):
-    n = len(arr)
- 
-    for i in range(n-1):
- 
-        for j in range(0, n-i-1):
- 
-            if not compare(arr[j], arr[j + 1]) :
-                arr[j], arr[j + 1] = arr[j + 1], arr[j]
-
-def convexHullBase1(points):
-    lista = []
-    
-    for i in range(len(points)):
-        for j in range(i+1,len(points)):
-            x1 = points[i][0]
-            y1 = points[i][1]
-            x2 = points[j][0]
-            y2 = points[j][1]
-
-            a1 = y1-y2
-            b1 = x2-x1
-            c1 = x1*y2-y1*x2
-            
-            pos = 0
-            neg = 0
-
-            for k in range(len(points)):
-                if a1*points[k][0] + b1*points[k][1] + c1 <= 0:
-                    neg = neg + 1
-                if a1*points[k][0] + b1*points[k][1] + c1 >= 0:
-                    pos = pos + 1
-            
-            if pos == len(points) or neg == len(points):
-                lista.append(points[i])
-                lista.append(points[j])
-
-    lista = set(lista)
-
-    lista = list(lista)
-    
-    global mid
-    mid = (0,0)
-    n = len(lista)
-    for i in range(n):
-        mid = (mid[0] + lista[i][0], mid[1] +lista[i][1])
-        lista[i]=(lista[i][0]*n, lista[i][1]*n)
-    
-    
-    bubbleSort(lista)
-
-    for i in range(n):
-        lista[i] = (lista[i][0]//n, lista[i][1]//n)
-
-    return lista
-
 
 def Left_index(points):
      
