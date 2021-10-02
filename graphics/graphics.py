@@ -1,16 +1,19 @@
 import sys, pygame
 sys.path.append("..")
 from functions.convexHull import *
+from graphics.imageRecognition import *
 
 pygame.init()
 resize = 5
 
-delay = 1000
+delay = 100
 
 size = width, height = int(360*resize), int(180*resize)
 white = 255, 255, 255
 
 screen = pygame.display.set_mode(size)
+
+
 
 def transform(point):
     return ((width//2 + point[0], -point[1]+height//2))
@@ -24,7 +27,7 @@ def transformList(list):
 
 def drawPoints(pointList):
     for point in pointList:
-        pygame.draw.circle(screen, (100, 100, 100), transform(point), 5, 5)
+        pygame.draw.circle(screen, (100, 100, 100), transform(point), 2,2)
 
 def convexHullIterative(pointList):
     
@@ -186,6 +189,73 @@ def runNaive(points):
     screen.fill(white)
     drawPoints(points)
     pygame.draw.lines(screen, (0,220,0), True, transformList(result),2)
+    pygame.display.flip()
+
+def transformImage(points):
+    invertedList = []
+    for point in points:
+        invertedList.append((point[1], point[0])) 
+    return invertedList
+
+def runImage():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT: sys.exit()
+    
+    screen.fill(white)
+    
+
+    points = edgeDetection()
+
+    points = list(set(points))
+
+    points.sort(key=lambda x: x[1])
+    
+    currentY = 0
+    first = False
+    ranges = []
+    for i in range(len(points)):
+        if not first:
+            ranges.append(points[i])
+            currentY = points[i][1]
+            first = True
+        lastPoint = i
+        if points[i][1] != currentY:
+            ranges.append(points[i-1])
+            first = False
+
+    points = ranges
+
+    points.sort(key=lambda x: x[0])
+
+
+    currentX = 0
+    first = False
+    ranges = []
+    for i in range(len(points)):
+        if not first:
+            ranges.append(points[i])
+            currentX = points[i][0]
+            first = True
+        lastPoint = i
+        if points[i][0] != currentX:
+            ranges.append(points[i-1])
+            first = False
+
+    points = ranges
+
+
+    points = list(set(points))
+    points.sort(key=lambda x: x[0])
+
+    print(points)
+    result = transformImage(convexHull(points))
+    print(result)
+
+    screen.fill(white)
+    pygame.draw.lines(screen, (220, 0, 0), True, transformImage(points), 1)
+
+    screen.blit(pygame.image.load("test.jpg"), [0, 0])
+    pygame.draw.lines(screen, (0,0,0), True, result,5)
     pygame.display.flip()
 
 
