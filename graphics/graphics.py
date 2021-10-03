@@ -15,7 +15,7 @@ screen = pygame.display.set_mode(size)
 
 def normalizePoints(points):
     points.sort(key=lambda x: (x[1], x[0]))
-    print(points)
+    # print(points)
     currentY = 0
     first = False
     ranges = []
@@ -37,7 +37,6 @@ def normalizePoints(points):
 
 
     points = ranges
-    print(points)
     points.sort(key=lambda x: (x[0], x[1]))
 
 
@@ -61,7 +60,6 @@ def normalizePoints(points):
     ranges.append(points[currentXIndex+counter-1])
 
     points = ranges
-    print(points)
     points = list(set(points))
     points.sort(key=lambda x: x[0])
 
@@ -224,9 +222,10 @@ def runRecursive(points):
 
         for point in points:
             pygame.draw.circle(screen, (100, 100, 100), transform(point), 5, 5)
+ 
 
         for point in result:
-            pygame.draw.circle(screen, (255, 0, 0), transform(point), 10, 2)
+            pygame.draw.circle(screen, (255, 0, 0), transform(point), 10, 10)
 
 
         pygame.draw.lines(screen, (10,10,10), True, transformList(result),5)
@@ -252,6 +251,23 @@ def transformImage(points):
         invertedList.append((point[1], point[0])) 
     return invertedList
 
+vel = 1
+
+def down(points):
+    for i in range(len(points)):
+        points[i] = (points[i][0], points[i][1]+vel)
+
+def up(points):
+    for i in range(len(points)):
+        points[i] = (points[i][0], points[i][1]-vel)
+
+def left(points):
+    for i in range(len(points)):
+        points[i] = (points[i][0]-vel, points[i][1])
+
+def right(points):
+    for i in range(len(points)):
+        points[i] = (points[i][0]+vel, points[i][1])
 
 def runImage():
     for event in pygame.event.get():
@@ -266,21 +282,54 @@ def runImage():
 
     points = normalizePoints(points)
 
-    print(points)
+    # print(points)
     result = transformImage(convexHull(points))
-    print(result)
+    # print(result)
 
     screen.fill(white)
     pygame.draw.lines(screen, (220, 0, 0), True, transformImage(points), 1)
 
     path = os.getcwd() + '/graphics/test.jpg'
+
     screen.blit(pygame.image.load(path), [0, 0])
-    pygame.draw.lines(screen, (0,0,0), True, result,5)
+    pygame.display.flip()
+    
+    wait = True
+    while wait:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                wait = False
+
+    pygame.draw.lines(screen, (0,0,0), True, result,3)
     pygame.display.flip()
 
 
     while 1:
-        pygame.time.delay(delay)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+
+            # handle MOUSEBUTTONUP
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    screen.fill(white)
+                    down(result)
+                    pygame.draw.lines(screen, (0,0,0), True, result,3)
+                if event.key == pygame.K_UP:
+                    screen.fill(white)
+                    up(result)
+                    pygame.draw.lines(screen, (0,0,0), True, result,3)
+                if event.key == pygame.K_LEFT:
+                    screen.fill(white)
+                    left(result)
+                    pygame.draw.lines(screen, (0,0,0), True, result,3)
+                if event.key == pygame.K_RIGHT:
+                    screen.fill(white)
+                    right(result)
+                    pygame.draw.lines(screen, (0,0,0), True, result,3)
+
+        pygame.display.flip()
 
 def runInteractive():
     points = []
@@ -324,3 +373,198 @@ def runInteractive():
 
 
     return "uwu"
+
+def isInPoly(polyA, polyB, delay):
+
+    rightMostPointA = 0
+    leftMostPointB = 0
+
+    col = False
+
+    for i in range(1, len(polyA)):
+        if polyA[i][0]>polyA[rightMostPointA][0]:
+            rightMostPointA = i
+
+    a1 = rightMostPointA
+
+    firsTime = False
+    counter = 0
+    for point in polyB:
+        while clockwise(point, polyA[a1], polyA[(a1 + 1)%(len(polyA))])>=0 and not (a1 == rightMostPointA and firsTime):
+            firsTime = True
+            counter += 1
+            a1 = (a1 + 1)%(len(polyA))
+            pygame.draw.line(screen, (0,0,255), polyA[a1], point)
+            # pygame.display.flip()
+            pygame.time.delay(delay)
+        if (counter == len(polyA)):
+            print("ROJO ESTÁ DENTRO DE DE AZUL")
+            col = True
+        firsTime = False
+        counter = 0
+
+
+    for i in range(1, len(polyB)):
+        if polyB[i][0]<polyB[leftMostPointB][0]:
+            leftMostPointB = i
+
+    b1 = leftMostPointB
+
+    firsTime = False
+    counter = 0
+    for point in polyA:
+        while clockwise(point, polyB[b1], polyB[(b1 + 1)%(len(polyB))])>=0 and not (b1 == leftMostPointB and firsTime):
+            firsTime = True
+            counter += 1
+            b1 = (b1 + 1)%(len(polyB))
+            pygame.draw.line(screen, (255,0,0), polyB[b1], point)
+            # pygame.display.flip()
+            pygame.time.delay(delay)
+        if (counter == len(polyB)):
+            print("AZUL ESTÁ DENTRO DE DE ROJO")
+            col = True
+
+        firsTime = False
+        counter = 0
+
+    return col
+
+
+def runTest(polyA, polyB, delay):
+
+    pos = (0,0)
+
+    while 1:
+    
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    print(polyA)
+                    resultA = convexHull(polyA)
+                    print(resultA)
+                    resultB = convexHull(polyB)
+                    print(polyB)
+                    print(resultB)
+                    pygame.draw.lines(screen, (0, 0,255), True, transformList(resultA), 4)
+                    pygame.draw.lines(screen, (255, 0, 0), True, transformList(resultB), 4)
+                    pygame.display.flip()
+                    isInPoly(transformList(resultA), transformList(resultB), delay)
+                    wait = True
+                    while wait:
+                        for event in pygame.event.get():
+                            if event.type == pygame.KEYDOWN:
+                                wait = False
+
+    
+        screen.fill(white)
+
+        for point in transformList(polyA):
+            pygame.draw.circle(screen, (0, 0, 255), point, 4, 4)
+
+        for point in transformList(polyB):
+            pygame.draw.circle(screen, (255, 0, 0), point, 4, 4)
+
+
+        pygame.display.flip()
+
+
+def runCollision():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT: sys.exit()
+    
+    screen.fill(white)
+    path1 = os.getcwd() + '/graphics/col1.jpg'
+    points1 = edgeDetectionPath(path1)
+    points1 = list(set(points1))
+    points1 = normalizePoints(points1)
+    result1 = convexHull(points1)
+
+
+    path2 = os.getcwd() + '/graphics/col2.jpg'
+    points2 = edgeDetectionPath(path2)
+    points2 = list(set(points2))
+    points2 = normalizePoints(points2)
+    result2 = convexHull(points2)
+
+    screen.fill(white)
+
+    pos1 = (0,0)
+    pos2 = (900, 0)
+
+
+    screen.blit(pygame.image.load(path1).convert_alpha(), pos1)
+    screen.blit(pygame.image.load(path2).convert_alpha(), pos2)
+
+    for i in range(len(points1)):
+        points1[i] = (points1[i][1] + pos1[0], points1[i][0] + pos1[1])
+    for i in range(len(result1)):
+        result1[i] = (result1[i][1] + pos1[0], result1[i][0] + pos1[1])
+
+    # pygame.draw.lines(screen, (220, 0, 0), True, points1, 1)
+
+    for i in range(len(points2)):
+        points2[i] = (points2[i][1] + pos2[0], points2[i][0] + pos2[1])
+    for i in range(len(result2)):
+        result2[i] = (result2[i][1] + pos2[0], result2[i][0] + pos2[1])
+
+    # pygame.draw.lines(screen, (220, 0, 0), True, points2, 1)
+    
+    pygame.display.flip()
+    
+    wait = True
+    while wait:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                wait = False
+
+    pygame.draw.lines(screen, (0,0,0), True, result1,3)
+    pygame.draw.lines(screen, (0,0,0), True, result2,3)
+    pygame.display.flip()
+
+    img1 = pygame.image.load(path1).convert()
+    img1.set_alpha(70)
+    # tImg1.fill((255, 255, 255, 100), special_flags=pygame.BLEND_RGBA_MULT)
+    img2 = pygame.image.load(path2).convert()
+    img2.set_alpha(70)
+
+    # tImg2 = img2.copy()
+    # tImg2.fill((255, 255, 255, 100), special_flags=pygame.BLEND_RGBA_MULT)
+
+    while 1:
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_DOWN]:
+            screen.fill(white)
+            down(result2)
+            pos2 = (pos2[0], pos2[1]+vel)
+
+        if keys[pygame.K_UP]:
+            screen.fill(white)
+            up(result2)
+            pos2 = (pos2[0], pos2[1]-vel)
+
+        if keys[pygame.K_LEFT]:
+            screen.fill(white)
+            left(result2)
+            pos2 = (pos2[0]-vel, pos2[1])
+
+        if keys[pygame.K_RIGHT]:
+            screen.fill(white)
+            right(result2)
+            pos2 = (pos2[0]+vel, pos2[1])
+
+        if isInPoly(result1, result2, 0):
+            pygame.draw.circle(screen, (0, 0, 255), (width//2, height//2), 40, 4)
+        screen.blit(img1, pos1)
+        pygame.draw.lines(screen, (0,0,255), True, result1,3)   
+        screen.blit(img2, pos2)
+        pygame.draw.lines(screen, (255,0,0), True, result2,3)
+
+        pygame.display.flip()

@@ -13,14 +13,21 @@ def generateRandomPoints(N):
 
 def init():
     # while 1:
-    N = 10
+    N = 6
 
     # test = [(100, 10), (100, 70), (54, 123) , (23, 123), (100, 123)]
     # print(normalizePoints(test))
 
     testPoints = generateRandomPoints(N)
     
-    testPoints = normalizePoints(testPoints)
+    testPoints1 = testPoints[0:len(testPoints)//2]
+    testPoints2 = testPoints[len(testPoints)//2:]
+
+    testPoints1 = normalizePoints(testPoints1)
+    testPoints2 = normalizePoints(testPoints2)
+
+
+    # runTest(testPoints1, testPoints2, 100)
 
     # runIterative(testPoints, 100)
     # runNaive(testPoints)
@@ -28,7 +35,9 @@ def init():
     # runImage()
     
     #press (R)ecursive, (I)terative or (N)aive
-    runInteractive() 
+    # runInteractive() 
+
+    runCollision()
 
 
 
