@@ -394,7 +394,7 @@ def isInPoly(polyA, polyB, delay):
             firsTime = True
             counter += 1
             a1 = (a1 + 1)%(len(polyA))
-            pygame.draw.line(screen, (0,0,255), polyA[a1], point)
+            pygame.draw.line(screen, (0,0,255), polyA[a1], point, 1)
             # pygame.display.flip()
             pygame.time.delay(delay)
         if (counter == len(polyA)):
@@ -417,7 +417,7 @@ def isInPoly(polyA, polyB, delay):
             firsTime = True
             counter += 1
             b1 = (b1 + 1)%(len(polyB))
-            pygame.draw.line(screen, (255,0,0), polyB[b1], point)
+            pygame.draw.line(screen, (255,0,0), polyB[b1], point, 1)
             # pygame.display.flip()
             pygame.time.delay(delay)
         if (counter == len(polyB)):
