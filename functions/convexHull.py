@@ -122,7 +122,6 @@ def convexHullMerge(PointListA, PointListB):
         done = True
         while clockwise(PointListA[a1], PointListB[b1], PointListB[(b1 + 1)%(len(PointListB))])>=0:
             b1 = (b1 + 1)%(len(PointListB))
-            print(PointListA[a1], PointListB[b1], PointListB[(b1 + 1)%(len(PointListB))])
     
             
         while clockwise(PointListB[b1], PointListA[a1], PointListA[(len(PointListA)+a1-1)%(len(PointListA))])<=0:

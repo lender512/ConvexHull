@@ -1,4 +1,4 @@
-import sys, pygame
+import sys, pygame, math
 sys.path.append("..")
 from functions.convexHull import *
 from graphics.imageRecognition import *
@@ -81,7 +81,115 @@ def drawPoints(pointList):
     for point in pointList:
         pygame.draw.circle(screen, (100, 100, 100), transform(point), 2,2)
 
-def convexHullIterative(pointList, delay):
+def convexHullMergeIterative(PointListA, PointListB):
+    
+    rightMostPointA = 0
+    leftMostPointB = 0
+    
+    for i in range(1, len(PointListA)):
+        if PointListA[i][0]>PointListA[rightMostPointA][0]:
+            rightMostPointA = i
+        # elif PointListA[i][0]==PointListA[rightMostPointA][0]:
+        #     if PointListA[i][1]<PointListA[rightMostPointA][1]:
+        #         rightMostPointA = i
+
+
+    for i in range(1, len(PointListB)):
+        if PointListB[i][0]<PointListB[leftMostPointB][0]:
+            leftMostPointB = i
+        # elif PointListB[i][0]==PointListB[leftMostPointB][0]:
+        #     if PointListB[i][1]<PointListB[leftMostPointB][1]:
+        #         leftMostPointB = i
+
+
+    done = False
+    a1 = rightMostPointA
+    b1 = leftMostPointB
+    
+    while not done:
+        
+        # screen.fill(white)
+        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListA),1)
+        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListB),1)
+        pygame.display.flip()
+
+        pygame.draw.line(screen, (0,0,255), transform(PointListB[b1]), transform(PointListA[a1]), 1)
+        pygame.display.flip()
+        pygame.time.delay(1000)
+
+        done = True
+        while clockwise(PointListB[b1], PointListA[a1], PointListA[(a1 + 1)%(len(PointListA))])>=0:
+            a1 = (a1 + 1)%(len(PointListA))
+            pygame.draw.line(screen, (0,0,255), transform(PointListB[b1]), transform(PointListA[a1]), 1)
+            pygame.display.flip()
+            pygame.time.delay(1000)
+            
+        while clockwise(PointListA[a1], PointListB[b1], PointListB[(len(PointListB)+b1-1)%(len(PointListB))])<=0:
+            b1 = (len(PointListB)+b1-1)%(len(PointListB))
+            done = False
+            pygame.draw.line(screen, (0,0,255), transform(PointListA[a1]), transform(PointListB[b1]), 1)
+            pygame.display.flip()
+            pygame.time.delay(1000)
+
+    upperA = a1
+    upperB = b1
+
+    pygame.draw.line(screen, (255,0,0), transform(PointListB[upperB]), transform(PointListA[upperA]), 2)
+    pygame.display.flip()
+    pygame.time.delay(1000)
+
+
+    done = False
+    a1 = rightMostPointA
+    b1 = leftMostPointB
+    while not done:
+
+        #screen.fill(white)
+        pygame.draw.line(screen, (255,0,0), transform(PointListB[upperB]), transform(PointListA[upperA]), 2)
+        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListA),1)
+        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListB),1)
+        pygame.display.flip()
+
+        done = True
+        while clockwise(PointListA[a1], PointListB[b1], PointListB[(b1 + 1)%(len(PointListB))])>=0:
+            b1 = (b1 + 1)%(len(PointListB))
+            
+            pygame.draw.line(screen, (0,0,255), transform(PointListA[a1]), transform(PointListB[b1]), 1)
+            pygame.display.flip()
+            pygame.time.delay(1000)
+            # print(PointListA[a1], PointListB[b1], PointListB[(b1 + 1)%(len(PointListB))])
+    
+            
+        while clockwise(PointListB[b1], PointListA[a1], PointListA[(len(PointListA)+a1-1)%(len(PointListA))])<=0:
+            a1 = (len(PointListA)+a1-1)%(len(PointListA))
+            done = False
+            pygame.draw.line(screen, (0,0,255), transform(PointListB[b1]), transform(PointListA[a1]), 1)
+            pygame.display.flip()
+            pygame.time.delay(1000)
+
+
+    lowerA = a1
+    lowerB = b1
+
+    pygame.draw.line(screen, (255,0,0), transform(PointListB[lowerB]), transform(PointListA[lowerA]), 2)
+    pygame.display.flip()
+    pygame.time.delay(1000)
+
+    mergeList = []
+    mergeList.append(PointListA[upperA])
+
+    while upperA != lowerA:
+        upperA = (upperA+1)%len(PointListA)
+        mergeList.append(PointListA[upperA])
+    
+    mergeList.append(PointListB[lowerB])
+    while lowerB != upperB:
+        lowerB = (lowerB+1)%len(PointListB)
+        mergeList.append(PointListB[lowerB])
+    
+    return mergeList
+
+def convexHullIterative(pointList, delay ,superIterative):
     
     drawPoints(pointList)
 
@@ -112,14 +220,17 @@ def convexHullIterative(pointList, delay):
     pygame.display.flip()
     pygame.time.delay(delay)
     
-    screen.fill(white)
+    #screen.fill(white)
     drawPoints(pointList)
 
     while not (len(nStack) == 1 or len(stack) == 1):
         while len(nStack) >= 2:
             top2 = nStack.pop()
             top1 = nStack.pop()
-            stack.append(convexHullMerge(top1,top2))
+            if superIterative:
+                stack.append(convexHullMergeIterative(top1,top2))
+            else:
+                stack.append(convexHullMerge(top1,top2))
 
             for polygon in stack:
                 pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),1)
@@ -132,7 +243,10 @@ def convexHullIterative(pointList, delay):
         while len(stack) >= 2:
             top1 = stack.pop()
             top2 = stack.pop()
-            nStack.append(convexHullMerge(top1,top2))
+            if superIterative:
+                nStack.append(convexHullMergeIterative(top1,top2))
+            else:
+                nStack.append(convexHullMerge(top1,top2))
 
             for polygon in nStack:
                 pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),1)
@@ -197,13 +311,13 @@ def convexHullNaive(pointList, delay):
     
     return hull
 
-def runIterative(points, delay):
+def runIterative(points, delay, superIterative):
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
     
     screen.fill(white)
 
-    convexHullIterative(points, delay)
+    convexHullIterative(points, delay, superIterative)
 
 
     pygame.display.flip()
@@ -356,7 +470,13 @@ def runInteractive():
                     for point in points:
                         nPoints.append((point[0]-width//2, -(point[1]-height//2)))
                     nPoints.sort(key=lambda x: x[0])
-                    runIterative(nPoints, 1000)
+                    runIterative(nPoints, 1000, False)
+                if event.key == pygame.K_s:
+                    nPoints = []
+                    for point in points:
+                        nPoints.append((point[0]-width//2, -(point[1]-height//2)))
+                    nPoints.sort(key=lambda x: x[0])
+                    runIterative(nPoints, 1000, True)
                 if event.key == pygame.K_r:
                     nPoints = []
                     for point in points:
@@ -442,12 +562,9 @@ def runTest(polyA, polyB, delay):
             
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    print(polyA)
+
                     resultA = convexHull(polyA)
-                    print(resultA)
                     resultB = convexHull(polyB)
-                    print(polyB)
-                    print(resultB)
                     pygame.draw.lines(screen, (0, 0,255), True, transformList(resultA), 4)
                     pygame.draw.lines(screen, (255, 0, 0), True, transformList(resultB), 4)
                     pygame.display.flip()
@@ -470,8 +587,27 @@ def runTest(polyA, polyB, delay):
 
         pygame.display.flip()
 
+def transformRotate(origin, point, angle):
+    ox = origin[0]
+    oy = origin[1]
+    px = point[0]
+    py = point[1]
+
+    angle = math.radians(angle)
+    x1 = ox - px;
+    y1 = oy - py;
+
+    temp = (x1 * math.cos(angle)) - (y1 * math.sin(angle));
+    y1   = (x1 * math.sin(angle)) + (y1 * math.cos(angle));
+    x1   = temp;
+    return (x1 + px, y1 + py)
+
+
 
 def runCollision():
+
+    stop = pygame.image.load(os.getcwd() + "/graphics/stop.png")
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
     
@@ -526,9 +662,12 @@ def runCollision():
 
     img1 = pygame.image.load(path1).convert()
     img1.set_alpha(70)
+    center1 = img1.get_rect().center
     # tImg1.fill((255, 255, 255, 100), special_flags=pygame.BLEND_RGBA_MULT)
     img2 = pygame.image.load(path2).convert()
     img2.set_alpha(70)
+    center2 = (img2.get_rect().center[0] + pos2[0], img2.get_rect().center[1] + pos2[1])
+
 
     # tImg2 = img2.copy()
     # tImg2.fill((255, 255, 255, 100), special_flags=pygame.BLEND_RGBA_MULT)
@@ -544,27 +683,99 @@ def runCollision():
             screen.fill(white)
             down(result2)
             pos2 = (pos2[0], pos2[1]+vel)
+            center2 = (center2[0], center2[1]+vel)
+
 
         if keys[pygame.K_UP]:
             screen.fill(white)
             up(result2)
             pos2 = (pos2[0], pos2[1]-vel)
+            center2 = (center2[0], center2[1]-vel)
 
         if keys[pygame.K_LEFT]:
             screen.fill(white)
             left(result2)
             pos2 = (pos2[0]-vel, pos2[1])
+            center2 = (center2[0]-vel, center2[1])
 
         if keys[pygame.K_RIGHT]:
             screen.fill(white)
             right(result2)
             pos2 = (pos2[0]+vel, pos2[1])
+            center2 = (center2[0]+vel, center2[1])
+
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_s]:
+            screen.fill(white)
+            down(result1)
+            pos1 = (pos1[0], pos1[1]+vel)
+            center1 = (center1[0], center1[1]+vel)
+
+        if keys[pygame.K_w]:
+            screen.fill(white)
+            up(result1)
+            pos1 = (pos1[0], pos1[1]-vel)
+            center1 = (center1[0], center1[1]-vel)
+
+        if keys[pygame.K_a]:
+            screen.fill(white)
+            left(result1)
+            pos1 = (pos1[0]-vel, pos1[1])
+            center1 = (center1[0]-vel, center1[1])
+
+        if keys[pygame.K_d]:
+            screen.fill(white)
+            right(result1)
+            pos1 = (pos1[0]+vel, pos1[1])
+            center1 = (center1[0]+vel, center1[1])
 
         if isInPoly(result1, result2, 0):
-            pygame.draw.circle(screen, (0, 0, 255), (width//2, height//2), 40, 4)
+            rect = stop.get_rect()
+            rect.center = (width//2, height//2)
+            screen.blit(stop, rect)
+
+
         screen.blit(img1, pos1)
         pygame.draw.lines(screen, (0,0,255), True, result1,3)   
         screen.blit(img2, pos2)
         pygame.draw.lines(screen, (255,0,0), True, result2,3)
 
+        pygame.draw.circle(screen,(0, 0, 255), center1 , 5)
+        pygame.draw.circle(screen,(255, 0, 0), center2 , 5)
+
         pygame.display.flip()
+
+def run(points):
+    # runImage()
+
+    while 1:
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    runRecursive(normalizePoints(points))
+                if event.key == pygame.K_i:
+                    runIterative(normalizePoints(points), 1000, False)
+                if event.key == pygame.K_s:
+                    runIterative(normalizePoints(points), 100, True)
+                if event.key == pygame.K_n:
+                    runNaive(normalizePoints(points))
+                if event.key == pygame.K_t:
+                    testPoints1 = points[0:len(points)//2]
+                    testPoints2 = points[len(points)//2:]
+                    testPoints1 = normalizePoints(testPoints1)
+                    testPoints2 = normalizePoints(testPoints2)
+                    runTest(testPoints1, testPoints2, 100)
+                if event.key == pygame.K_m:
+                    runInteractive() 
+                if event.key == pygame.K_p:
+                    runImage()
+                if event.key == pygame.K_c:
+                    runCollision()
+        screen.fill(white)
+
+    runCollision()
