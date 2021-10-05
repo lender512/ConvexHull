@@ -148,7 +148,7 @@ def convexHullMerge(PointListA, PointListB):
 
 
 def convexHull(pointList):
-    if len(pointList) <= 10:
+    if len(pointList) <= 5:
         return convexHullBase(pointList)
     
     left = pointList[0:len(pointList)//2]

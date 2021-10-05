@@ -109,8 +109,8 @@ def convexHullMergeIterative(PointListA, PointListB):
     while not done:
         
         # screen.fill(white)
-        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListA),1)
-        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListB),1)
+        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListA),2)
+        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListB),2)
         pygame.display.flip()
 
         pygame.draw.line(screen, (0,0,255), transform(PointListB[b1]), transform(PointListA[a1]), 1)
@@ -146,8 +146,8 @@ def convexHullMergeIterative(PointListA, PointListB):
 
         #screen.fill(white)
         pygame.draw.line(screen, (255,0,0), transform(PointListB[upperB]), transform(PointListA[upperA]), 2)
-        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListA),1)
-        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListB),1)
+        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListA),2)
+        pygame.draw.lines(screen, (0,255,0), True, transformList(PointListB),2)
         pygame.display.flip()
 
         done = True
@@ -216,7 +216,7 @@ def convexHullIterative(pointList, delay ,superIterative):
             stack.append(left)
     
     for polygon in nStack:
-        pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),1)
+        pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),2)
     pygame.display.flip()
     pygame.time.delay(delay)
     
@@ -233,7 +233,7 @@ def convexHullIterative(pointList, delay ,superIterative):
                 stack.append(convexHullMerge(top1,top2))
 
             for polygon in stack:
-                pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),1)
+                pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),2)
         
         pygame.display.flip()
         pygame.time.delay(delay)
@@ -249,7 +249,7 @@ def convexHullIterative(pointList, delay ,superIterative):
                 nStack.append(convexHullMerge(top1,top2))
 
             for polygon in nStack:
-                pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),1)
+                pygame.draw.lines(screen, (10,10,10), True, transformList(polygon),2)
 
         pygame.display.flip()
         screen.fill(white)
@@ -260,10 +260,10 @@ def convexHullIterative(pointList, delay ,superIterative):
     drawPoints(pointList)
     
     if len(nStack) == 1:
-        pygame.draw.lines(screen, (10,10,10), True, transformList(nStack.pop()),1)
+        pygame.draw.lines(screen, (10,10,10), True, transformList(nStack.pop()),2)
 
     else:
-        pygame.draw.lines(screen, (10,10,10), True, transformList(stack.pop()),1)
+        pygame.draw.lines(screen, (10,10,10), True, transformList(stack.pop()),2)
 
     
 
@@ -401,7 +401,7 @@ def runImage():
     # print(result)
 
     screen.fill(white)
-    pygame.draw.lines(screen, (220, 0, 0), True, transformImage(points), 1)
+    pygame.draw.lines(screen, (220, 0, 0), True, transformImage(points), 2)
 
     path = os.getcwd() + '/graphics/test.jpg'
 
@@ -763,7 +763,7 @@ def run(points):
                 if event.key == pygame.K_s:
                     runIterative(normalizePoints(points), 100, True)
                 if event.key == pygame.K_n:
-                    runNaive(normalizePoints(points))
+                    runNaive(normalizePoints(points), 1000)
                 if event.key == pygame.K_t:
                     testPoints1 = points[0:len(points)//2]
                     testPoints2 = points[len(points)//2:]
