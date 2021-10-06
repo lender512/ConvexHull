@@ -22,7 +22,7 @@ def init():
     # p: image
     # c: colission
 
-    N = 30
+    N = 100
     run(generateRandomPoints(N))
 
 

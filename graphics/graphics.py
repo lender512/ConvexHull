@@ -1,6 +1,7 @@
 import sys, pygame, math
 sys.path.append("..")
 from functions.convexHull import *
+from functions.convexHullBrute import *
 from graphics.imageRecognition import *
 
 pygame.init()
@@ -11,7 +12,38 @@ delay = 1000
 size = width, height = int(360*resize), int(180*resize)
 white = 255, 255, 255
 
+def blitText(surface, text, pos, font, color=pygame.Color('black')):
+    words = [word.split(' ') for word in text.splitlines()]  # 2D array where each row is a list of words.
+    space = font.size(' ')[0]  # The width of a space.
+    max_width, max_height = (540,100)
+    x, y = pos
+    for line in words:
+        for word in line:
+            word_surface = font.render(word, 0, color)
+            word_width, word_height = word_surface.get_size()
+            if x + word_width >= max_width:
+                x = pos[0]  # Reset the x.
+                y += word_height  # Start on new row.
+            surface.blit(word_surface, (x, y))
+            x += word_width + space
+        x = pos[0]  # Reset the x.
+        y += word_height  # Start on new row.
+
 screen = pygame.display.set_mode(size)
+myfont = pygame.font.SysFont("Comic Sans MS", 30)
+label ="r ......................... Recursive version (instant graphic) "\
+    "i ............................ Iterative version (nice animation) "\
+    "s .... Superitative version (upper and lower tangents) "\
+    "n ................................. Naive version (Jarvis' march) "\
+    "t ............................. Collision test using orientation "\
+    "m ..... manual version (draw points and use r, i or n) "\
+    "p ................................. picture convex hull generator "\
+    "c ........................................... collision test with cars "\
+    "3 .................................................. Dumb version (n^3) "
+
+screen.fill(white)
+blitText(screen, label, (20, 20), myfont)
+pygame.display.update()
 
 def normalizePoints(points):
     points.sort(key=lambda x: (x[1], x[0]))
@@ -220,7 +252,7 @@ def convexHullIterative(pointList, delay ,superIterative):
     pygame.display.flip()
     pygame.time.delay(delay)
     
-    #screen.fill(white)
+    screen.fill(white)
     drawPoints(pointList)
 
     while not (len(nStack) == 1 or len(stack) == 1):
@@ -746,6 +778,112 @@ def runCollision():
 
         pygame.display.flip()
 
+def getLine(a, b):
+    m = (b[1]-a[1])/(b[0]-a[0])
+    
+    return (0, m*(0-a[0])+a[1]),(width, m*(width-a[0])+ a[1])
+
+def convexHullDumb(points, delay):
+    lista = []
+    drawPoints(points)
+    pygame.display.flip()
+    for i in range(len(points)):
+        for j in range(i+1,len(points)):
+            x1 = points[i][0]
+            y1 = points[i][1]
+            x2 = points[j][0]
+            y2 = points[j][1]
+
+            a1 = y1-y2
+            b1 = x2-x1
+            c1 = x1*y2-y1*x2
+            
+            pos = 0
+            neg= 0
+
+            screen.fill(white)
+            drawPoints(points)
+            pygame.draw.line(screen, (100, 100, 100), transform(points[i]), transform(points[j]), 1)
+            for point in lista:
+                pygame.draw.circle(screen, (0, 255, 0), transform(point),5)
+            pygame.display.flip()
+
+            for k in range(len(points)):
+                if a1*points[k][0] + b1*points[k][1] + c1 <= 0:
+                    pygame.draw.circle(screen, (255, 0, 0), transform(points[k]),5)
+                    neg = neg + 1
+                if a1*points[k][0] + b1*points[k][1] + c1 >= 0:
+                    pygame.draw.circle(screen, (0, 0, 255), transform(points[k]),5)
+                    pos = pos + 1
+                drawPoints(points)
+                line = getLine(transform(points[i]), transform(points[j]))
+                pygame.draw.line(screen, (150, 150, 150), line[0], line[1], 2)
+                pygame.draw.line(screen, (0, 0, 0), transform(points[i]), transform(points[j]), 4)
+                for point in lista:
+                    pygame.draw.circle(screen, (0, 200, 0), transform(point),10)
+                pygame.display.flip()
+            pygame.time.delay(delay)
+            
+            if pos == len(points) or neg == len(points):
+                lista.append(points[i])
+                if points[i] != points[j]:
+                    lista.append(points[j])
+            
+
+            
+
+
+    lista = set(lista)
+    lista = list(lista)
+    
+    global mid
+    midX = 0
+    midY = 0
+    n = len(lista)
+    for i in range(n):
+        midX += lista[i][0]
+        midY += lista[i][1]
+        mid = (midX, midY)
+        # lista[i]=(lista[i][0]*n, lista[i][1]*n)
+        lista[i]=(lista[i][0], lista[i][1])
+    
+        
+    bubbleSort(lista)
+
+    for i in range(n):
+        lista[i] = (lista[i][0], lista[i][1])
+
+    for point in lista:
+        pygame.draw.circle(screen, (255, 0, 0), transform(point), 4)
+    pygame.display.flip()
+    while 1:
+        pygame.time.delay(10)
+
+    return lista
+
+def runDumb(points, delay):
+    while 1:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+        
+        screen.fill(white)
+
+        points.sort(key=lambda x: x[0])
+        result = convexHullDumb(points, delay)
+
+        for point in points:
+            pygame.draw.circle(screen, (100, 100, 100), transform(point), 5, 5)
+ 
+
+        for point in result:
+            pygame.draw.circle(screen, (255, 0, 0), transform(point), 10, 10)
+
+
+        pygame.draw.lines(screen, (10,10,10), True, transformList(result),5)
+
+        pygame.display.flip()
+
 def run(points):
     # runImage()
 
@@ -776,6 +914,6 @@ def run(points):
                     runImage()
                 if event.key == pygame.K_c:
                     runCollision()
+                if event.key == pygame.K_3:
+                    runDumb(points, 1000)
         screen.fill(white)
-
-    runCollision()
